@@ -197,7 +197,6 @@ my $replScriptText = <<'EOF_REPL';
     .clear / .cls clears the screen; note: may not work in Cygwin and MSYS.
     .exit / .quit exits the REPL (just 'exit' works too).
     .man opens perli's own man page.
-    .home opens perli's homepage, {{homeUrl}}.
     .help or ? prints these instructions.
 EOF
       }

@@ -23,7 +23,8 @@ use FileHandle;
 STDOUT->autoflush;
 STDERR->autoflush;
 
-
+my $WORK_DIR = "/tmp/home/perli/$$";	# working directory
+system("mkdir -p $WORK_DIR");
 my $kTHIS_NAME = basename $0;
 my $kTHIS_HOME = 'https://github.com/mklement0/perli';
 my $kTHIS_VERSION = 'v0.1.4'; # Note that the `kTHIS_VERSION='...'` statement is automatically updated by `make version VER=<newVer>` - DO keep the 'v' prefix.
@@ -32,6 +33,16 @@ my $kTHIS_VERSION = 'v0.1.4'; # Note that the `kTHIS_VERSION='...'` statement is
 use Data::Dumper; $Data::Dumper::Terse = 1; sub p { print Dumper(@_); };
 
 sub openurl; # forward-declare helper function
+
+use sigtrap handler => \&cleanup, 'normal-signals';
+
+sub cleanup {
+	exec("rm -rf $WORK_DIR");
+}
+
+END {
+	cleanup();	
+	}
 
 # Deal with standard options.
 if (@ARGV) {
@@ -458,14 +469,14 @@ $replScriptText =~ s/\Q{{promptString}}\E/$prompt/ or die;
 $replScriptText =~ s/\Q{{noColor}}\E/$noColor/g or die;
 
 # Write REPL script to temp. file.
-my ($fh, $tempScriptFile) = tempfile(SUFFIX => '.pl', UNLINK => 1) or die;
+my ($fh, $tempScriptFile) = tempfile(DIR => $WORK_DIR, SUFFIX => '.pl', UNLINK => 1) or die;
 print $fh $replScriptText or die;
 $fh->flush or die; # Perl normally auto-flushes before invoking exec or system, but just to be safe.
 
 # For simple TAB-COMPLETION, create a temp. file with all Perl functions and some keywords
 my $tempCompletionFile;
 if ($useRlWrap) {
-  ($fh, $tempCompletionFile) = tempfile(SUFFIX => '.pl', UNLINK => 1) or die;
+  ($fh, $tempCompletionFile) = tempfile(DIR => $WORK_DIR, SUFFIX => '.pl', UNLINK => 1) or die;
   # binmode $fh, ':utf8';
   # Try to obtain all function names with Pod::Functions.
   my $funcNames;

@@ -459,14 +459,14 @@ $replScriptText =~ s/\Q{{promptString}}\E/$prompt/ or die;
 $replScriptText =~ s/\Q{{noColor}}\E/$noColor/g or die;
 
 # Write REPL script to temp. file.
-my ($fh, $tempScriptFile) = tempfile(UNLINK => 1) or die;
+my ($fh, $tempScriptFile) = tempfile(SUFFIX => '.pl', UNLINK => 1) or die;
 print $fh $replScriptText or die;
 $fh->flush or die; # Perl normally auto-flushes before invoking exec or system, but just to be safe.
 
 # For simple TAB-COMPLETION, create a temp. file with all Perl functions and some keywords
 my $tempCompletionFile;
 if ($useRlWrap) {
-  ($fh, $tempCompletionFile) = tempfile(UNLINK => 1) or die;
+  ($fh, $tempCompletionFile) = tempfile(SUFFIX => '.pl', UNLINK => 1) or die;
   # binmode $fh, ':utf8';
   # Try to obtain all function names with Pod::Functions.
   my $funcNames;
@@ -538,7 +538,8 @@ if ($useRlWrap) {          # Unix system with rlwrap.
     #       print our own, as rlwrap -S <prompt-string> would overwrite any
     #       child process prompts, such as when `.sh` is used to open a shell
     #       temporarily.
-    exec "rlwrap -A --command-name '$kTHIS_NAME' --remember -f '$tempCompletionFile' \"$perlBin\" $perlArgs '$tempScriptFile'" or die;  
+    my $command = "rlwrap -A --command-name '$kTHIS_NAME' --remember -f '$tempCompletionFile' \"$perlBin\" $perlArgs '$tempScriptFile'" or die;  
+    system($command);
 } else {
   if ($^O eq 'MSWin32') { # Windows
     # !! Note that exec() doesn't work as expected on Windows (Perl is seemingly launched in the background), so we use system() instead.

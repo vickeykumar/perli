@@ -1,4 +1,12 @@
-	# Since we rely on paths relative to the Makefile location, abort if make isn't being run from there.
+GIT_TOP=$(shell git rev-parse --show-toplevel 2>/dev/null)
+UNAME := $(shell uname)
+USER = $(shell id -u -n)
+
+install:
+	if [ '$(UNAME)' = 'Linux' ] || [ '$(UNAME)' = 'Darwin' ]; then echo "installing for ${USER}";chmod 755 ${GIT_TOP}/bin/perli;\
+	 ln -s ${GIT_TOP}/bin/perli /usr/local/bin/perli; chown -R ${USER} /usr/local/bin/perli; fi
+
+# Since we rely on paths relative to the Makefile location, abort if make isn't being run from there.
 $(if $(findstring /,$(MAKEFILE_LIST)),$(error Please only invoke this makefile from the directory it resides in))
 	# Run all shell commands with bash.
 SHELL := bash
@@ -11,7 +19,7 @@ export PATH := ./node_modules/.bin:$(PATH)
 	# Sanity check: git repo must exist.
 $(if $(shell [[ -d .git ]] && echo ok),,$(error No git repo found in current dir. Please at least initialize one with 'git init'))
 	# Sanity check: make sure dev dependencies (and npm) are installed - skip this check only for certain generic targets (':' is the pseudo target used by the `list` target's recipe.)
-$(if $(or $(shell [[ '$(MAKECMDGOALS)' =~ list|: ]] && echo ok), $(shell [[ -d ./node_modules/semver ]] && echo 'ok')),,$(error Did you forget to run `npm install` after cloning the repo (Node.js must be installed)? At least one of the required dev dependencies not found))
+#$(if $(or $(shell [[ '$(MAKECMDGOALS)' =~ list|: ]] && echo ok), $(shell [[ -d ./node_modules/semver ]] && echo 'ok')),,$(error Did you forget to run `npm install` after cloning the repo (Node.js must be installed)? At least one of the required dev dependencies not found))
 	# Determine the editor to use for modal editing. Use the same as for git, if configured; otherwise $EDITOR, then fall back to vi (which may be vim).
 EDITOR := $(shell git config --global --get core.editor || echo "$${EDITOR:-vi}")
 
